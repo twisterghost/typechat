@@ -1,0 +1,19 @@
+{
+  "name": "HatTip",
+  "version": "0.0.0",
+  "description": "Effortless link sharing",
+  "main": "hattip.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Michael Barrett <i@amMichael.com>",
+  "license": "BSD",
+  "dependencies": {
+    "express": "~3.0.6",
+    "optimist": "~0.3.5",
+    "winston": "~0.6.2",
+    "socket.io": "~0.9.13",
+    "jade": "~0.28.1",
+    "http": "0.0.0"
+  }
+}
