@@ -1,2 +1,8 @@
 # Hat Tip
-Tip your hat to effortless link sharing
+Effortless link sharing
+
+## Installation
+```
+$ npm install
+$ node hattip [--topic TOPIC --port PORT]
+```
