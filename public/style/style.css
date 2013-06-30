@@ -1,0 +1,101 @@
+html {
+  font-size: 12px;
+  font-family: Helvetica;
+}
+
+input {
+  outline: none;
+}
+
+#mainInput {
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 1px solid #aaa;
+  padding-left: .25em;
+  padding-right: .25em;
+  display: block;
+}
+
+#mainInput:disabled {
+  background-color: #fff;
+  color: #aaa;
+}
+
+#submitter {
+  font-size: 4em;
+  background-color: #fff;
+  border: 1px solid #aaa;
+}
+
+#mainInput.big {
+  font-size: 12em;
+  margin: 0 auto;
+  width: 80%;
+  text-align: center;
+}
+
+.inputContainer {
+  margin: 0 auto;
+}
+
+.inputContainer.big {
+  text-align: center;
+  font-size: 1em;
+  margin: auto;
+}
+
+#enterAction {
+  margin: 0 auto;
+  font-size: 4em;
+  color: #000;
+  opacity: 0;
+}
+
+#content {
+  width: 80%;
+  font-size: 2em;
+  margin: 0 auto;
+}
+
+.comment {
+  color: #888;
+  padding-left: 4em;
+  font-size: 1em;
+  padding-bottom: 0;
+}
+
+.nameChange {
+  color: #888;
+  font-style: italic;
+  padding-left: .2em;
+  font-size: 1em;
+  padding-bottom: 0;
+}
+
+.link a {
+  color: #444;
+  text-decoration: underline;
+  padding-left: .2em;
+  font-size: 1em;
+  padding-bottom: 0;
+}
+
+
+.author {
+  color: #aaa;
+  padding-left: 10em;
+  font-size: .5em;
+  line-height: 1em;
+  margin-bottom: 2em;
+}
+
+.addition {
+  display: block;
+  padding-left: 1px;
+}
+
+.addition:hover {
+  padding-left: 0;
+  border-left: 1px solid #aaa;
+}
