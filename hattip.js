@@ -1,3 +1,10 @@
+/*
+ * HatTip - Simple and elegant link sharing.
+ */
+
+console.log("Starting up. Gimmie a sec...");
+
+// Imports and dependencies.
 var express = require("express");
 var argv = require("optimist").argv;
 var app = express();
@@ -7,17 +14,14 @@ var io = require('socket.io').listen(server);
 var fs = require("fs");
 var _ = require("underscore");
 
-logger.info("Welcome to Hat Tip!");
 
 // Set up and defaults.
-
-var port = varDefault(argv.port, process.env.PORT || 4488);
-var topic = varDefault(argv.topic, "Hat Tip");
+var port = argv.port || process.env.PORT || 4488;
+var topic = argv.topic || "Hat Tip";
 var postMemory = [];
 var urlPattern = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/;
 
-logger.info("Using port: " + port);
-
+logger.info("Runnin' on port " + port);
 
 // Set app to use jade.
 app.set('views', __dirname + '/views');
@@ -26,7 +30,7 @@ app.set('view engine', 'jade');
 // Set static directory.
 app.use(express.static(__dirname + '/public'));
 
-// Handle favicon requests.
+// Handle favicon requests. Ain't got one for now.
 app.get("/favicon.ico", function(req, res) {
   res.send("nope", 404);
 });
@@ -36,20 +40,14 @@ app.get("/", function(req, res) {
   res.render("index", {topic: topic});
 });
 
-// Start listening.
-server.listen(port);
-
-loadData();
-
 // Begin socket handling.
 io.sockets.on('connection', function (socket) {
 
+  // On a connection, send the user the posts in memory.
+  // TODO: Add a limiter so we aren't sending thousands of posts at once.
   socket.emit("postMemory", {posts: postMemory});
 
-  socket.on('my other event', function (data) {
-    console.log(data);
-  });
-
+  // When a user connects, name this connection and send an ack.
   socket.on("connect", function(data) {
     console.log("Connected: " + data.username);
     socket.set("username", fixName(data.username.trim()), function() {
@@ -57,13 +55,14 @@ io.sockets.on('connection', function (socket) {
     });
   });
 
+  // When a user sends a message, parse it.
   socket.on("send", function(data) {
     console.log("Message sent by " + data.username);
     parseMessage(data, socket);
   })
 });
 
-
+// Parses messages and responds to the client.
 function parseMessage(data, socket) {
 
   var post = {
@@ -75,7 +74,7 @@ function parseMessage(data, socket) {
 
   if (data.message.trim()[0] == "!") {
 
-    // This is a comment.
+    // This is a user made comment.
     // First, try to figure out if it is about an older link.
 
     var firstSegment = data.message.trim().split(" ")[0];
@@ -119,10 +118,6 @@ function parseMessage(data, socket) {
   saveData();
 }
 
-// Helper functions.
-function varDefault(variable, defaultValue) {
-  return typeof(variable) !== 'undefined' ? variable : defaultValue;
-}
 
 function saveData() {
   fs.writeFileSync("memory", JSON.stringify(postMemory));
@@ -142,3 +137,12 @@ function fixName(string) {
   string = sanitize(string);
   return string.substring(0, 30);
 }
+
+// Set socket.io's log level. Change to 3 to see debug info.
+io.set("log level", 2);
+
+// Load up the server memory, if any.
+loadData();
+
+// Start listening.
+server.listen(port);
