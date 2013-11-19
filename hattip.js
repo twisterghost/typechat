@@ -35,6 +35,12 @@ app.get("/favicon.ico", function(req, res) {
   res.send("nope", 404);
 });
 
+
+// Handle favicon requests. Ain't got one for now.
+app.get("/help", function(req, res) {
+  res.render("help");
+});
+
 // Default to index.
 app.get("/", function(req, res) {
   res.render("index", {topic: topic});
@@ -43,9 +49,22 @@ app.get("/", function(req, res) {
 // Begin socket handling.
 io.sockets.on('connection', function (socket) {
 
+  var room = "home";
+  socket.join("home");
+
   // On a connection, send the user the posts in memory.
   // TODO: Add a limiter so we aren't sending thousands of posts at once.
-  socket.emit("postMemory", {posts: postMemory});
+
+  socket.on("getMemory", function(data) {
+    var sendPosts = [];
+    for (var post in postMemory) {
+      if (postMemory[post].room == data.room) {
+        sendPosts.push(postMemory[post]);
+      }
+    }
+    socket.emit("postMemory", {posts: sendPosts});
+  });
+  
 
   // When a user connects, name this connection and send an ack.
   socket.on("connect", function(data) {
@@ -69,7 +88,8 @@ function parseMessage(data, socket) {
     type: "",
     content: "",
     author: data.username,
-    time: new Date().getTime() / 1000
+    time: new Date().getTime() / 1000,
+    room: data.room
   }
 
   if (data.message.trim()[0] == "!") {
@@ -88,7 +108,7 @@ function parseMessage(data, socket) {
     post.content = _.escape(data.message.trim().substring(1).trim());
     postMemory.push(post);
 
-  } else if (data.message.trim()[0] == "^") {
+  } else if (data.message.trim()[0] == "@") {
 
     // This is a name change.
     post.type = "namechange";
@@ -101,6 +121,11 @@ function parseMessage(data, socket) {
 
   } else if (data.message.trim()[0] == "#") {
     //setEnterAction("Search for '" + data.message.trim().substring(1).trim() + "'");
+  } else if (data.message.trim()[0] == ">") {
+    // This is a link.
+    post.type = "text";
+    post.content = _.escape(data.message.trim().substring(1).trim());
+    postMemory.push(post);
   } else if (data.message.trim().match(urlPattern) !== null) {
 
     // This is a link.
@@ -108,13 +133,26 @@ function parseMessage(data, socket) {
     post.content = data.message.trim();
     postMemory.push(post);
 
-  } else {
+  } else if (data.message.trim()[0] == "/") {
+
+    // Change room.
+    var newroom = _.escape(data.message.trim().substring(1).trim());
+    if (newroom == "") {
+      newroom = "home";
+    }
+    socket.leave(data.room);
+    socket.join(newroom);
+    console.log(data.username + " joined " + newroom);
+    console.log(io.sockets.manager.roomClients[socket.id]);
+    socket.emit("roomchange", {room: newroom});
+
+  }else {
     socket.emit("unknown");
     return;
   }
 
   socket.emit("new", post);
-  socket.broadcast.emit("new", post);
+  socket.broadcast.to(data.room).emit("new", post);
   saveData();
 }
 

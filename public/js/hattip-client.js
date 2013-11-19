@@ -1,5 +1,7 @@
 var state = {
-  status: "start"
+  status: "start",
+  room: "home",
+  topic: $("title").html()
 }
 
 var urlPattern = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/;
@@ -8,6 +10,7 @@ var socket = io.connect("http://" + location.host);
 
 socket.on("connect-ack", function(data) {
   joinHatTip();
+  socket.emit("getMemory", {room: state.room});
 });
 
 socket.on("postMemory", function(data) {
@@ -22,6 +25,13 @@ socket.on("new", function(data) {
 
 socket.on("namechange", function(data) {
   state.username = data.newName;
+});
+
+socket.on("roomchange", function(data) {
+  state.room = data.room;
+  $("#content").html("");
+  $("title").text("[" + data.room + "] " + state.topic);
+  socket.emit("getMemory", {room: state.room});
 });
 
 function addContent(data) {
@@ -54,12 +64,17 @@ function addContent(data) {
      "<a target='_blank' href='" + data.content + "'>" + data.content + "</a></div>" +
       "<div class='author'>" + data.author + "</div></div>");
     $("#content").prepend(add);
+  } else if (data.type == "text") {
+    add = $("<div class='addition toplevel'><div class='link'>" +
+     data.content + "</div>" +
+      "<div class='author'>" + data.author + "</div></div>");
+    $("#content").prepend(add);
   }
 
 }
 
 socket.on("unknown", function() {
-  $("#mainInput").attr("placeholder", "Give a link, !... or ^...");
+  $("#mainInput").attr("placeholder", "Give a link or !, >, @ or /");
 });
 
 $(document).ready(function() {
@@ -86,18 +101,22 @@ $(document).ready(function() {
             console.log("oi");
             var lookback = input.val().match(/[0-9]+/)[0];
             if ($(".toplevel").size() > parseInt(lookback)) {
-              var link = $($(".toplevel a").get(parseInt(lookback))).html();
+              var link = $($(".toplevel .link").get(parseInt(lookback))).html();
               setEnterAction("Comment about " + link);
               return;
             }
           }
 
-          var link = $(".toplevel a").first().html();
+          var link = $(".toplevel .link").first().html();
           setEnterAction("Comment about " + link);
-        } else if (input.val().trim()[0] == "^") {
+        } else if (input.val().trim()[0] == "@") {
           setEnterAction("Update Name");
+        } else if (input.val().trim()[0] == "/") {
+          setEnterAction("Join " + input.val().trim().substring(1));
         } else if (input.val().trim()[0] == "#") {
           setEnterAction("Search for '" + input.val().trim().substring(1) + "'");
+        } else if (input.val().trim()[0] == ">") {
+          setEnterAction("Text Post");
         } else if (input.val().trim().match(urlPattern) !== null) {
           setEnterAction("Post Link");
         } else {
@@ -144,7 +163,8 @@ function enter() {
   input.val("");
   socket.emit("send", {
     username: state.username,
-    message: text
+    message: text,
+    room: state.room
   })
 
 }
@@ -164,7 +184,7 @@ function joinHatTip() {
   $("#mainInput").attr("placeholder", "Paste or type...");
   $("#mainInput").val("");
   $("#mainInput").animate({
-    fontSize: "5em"
+    fontSize: "3em"
   }, 500);
 }
 
@@ -173,7 +193,7 @@ function setEnterAction(action) {
 }
 
 function showHelp() {
-  $("#enterAction").html("Share links. Use ! to comment, ^ to change names.").animate({
+  $("#enterAction").html("Read <a target='_blank' href='/help'>this</a> for help.").animate({
     opacity: .5
   }, 500);
 }
