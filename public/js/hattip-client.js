@@ -59,7 +59,7 @@ function addContent(data) {
 }
 
 socket.on("unknown", function() {
-  $("#mainInput").attr("placeholder", "Give a link, !..., ^... or #...");
+  $("#mainInput").attr("placeholder", "Give a link, !... or ^...");
 });
 
 $(document).ready(function() {
