@@ -34,6 +34,23 @@ socket.on("roomchange", function(data) {
   socket.emit("getMemory", {room: state.room});
 });
 
+socket.on("roomlist", function(data) {
+  data.rooms.sort(function(a, b) {
+    return b.time - a.time;
+  })
+  
+
+  var rooms = "";
+  for (var room in data.rooms) {
+    rooms += "<div class='addition toplevel'><div class='link'><a href='#' onclick=\"changeRoom('" + data.rooms[room].name + "')\">" +
+     data.rooms[room].name + "</a></div></div>";
+  }
+  $("#content").fadeOut(function() {
+    $("#rooms").html(rooms);
+    $("#rooms").fadeIn();
+  });
+});
+
 function addContent(data) {
   if (state.status == "connected") {
     $("#mainInput").attr("placeholder", "Paste or type...");
@@ -111,6 +128,8 @@ $(document).ready(function() {
           setEnterAction("Comment about " + link);
         } else if (input.val().trim()[0] == "@") {
           setEnterAction("Update Name");
+        } else if (input.val().trim()[0] == "?") {
+          setEnterAction("Get Help");
         } else if (input.val().trim()[0] == "/") {
           setEnterAction("Join " + input.val().trim().substring(1));
         } else if (input.val().trim()[0] == "#") {
@@ -159,14 +178,39 @@ function enter() {
     return;
   }
 
+  if (input.val().trim()[0] == "?") {
+    var win = window.open("/help", '_blank');
+    win.focus();
+    input.val("");
+    return;
+  }
+
   // Otherwise, send a mesage.
   input.val("");
   socket.emit("send", {
     username: state.username,
     message: text,
     room: state.room
-  })
+  });
 
+  if (text != "rooms") {
+    $("#rooms").fadeOut(function() {
+      $("#content").fadeIn();
+    });
+  }
+
+}
+
+function changeRoom(room) {
+  socket.emit("send", {
+    username: state.username,
+    message: "/" + room,
+    room: state.room
+  });
+  $("#rooms").fadeOut(function() {
+    $("#content").fadeIn();
+  });
+  
 }
 
 function connect(input) {

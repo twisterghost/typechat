@@ -20,6 +20,7 @@ var port = argv.port || process.env.PORT || 4488;
 var topic = argv.topic || "Hat Tip";
 var postMemory = [];
 var urlPattern = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/;
+var rooms = [];
 
 logger.info("Runnin' on port " + port);
 
@@ -143,10 +144,16 @@ function parseMessage(data, socket) {
     socket.leave(data.room);
     socket.join(newroom);
     console.log(data.username + " joined " + newroom);
-    console.log(io.sockets.manager.roomClients[socket.id]);
+    updateRooms(newroom);
     socket.emit("roomchange", {room: newroom});
 
-  }else {
+  } else if (data.message.trim() == "rooms") {
+
+    // Return the list of rooms.
+    console.log("sending rooms");
+    socket.emit("roomlist", {rooms: rooms});
+
+  } else {
     socket.emit("unknown");
     return;
   }
@@ -174,6 +181,40 @@ function sanitize(string) {
 function fixName(string) {
   string = sanitize(string);
   return string.substring(0, 30);
+}
+
+function updateRooms(roomname) {
+
+  var now = new Date().getTime();
+  var expireLimit = now - 86400000; // now - 1 day in ms
+
+  var temprooms = rooms;
+  rooms = [];
+
+  // Filter out old rooms.
+  // TODO: Don't be lazy and make this remove from rooms rather than recreate
+  // every time.
+  for (var room in temprooms) {
+    if (temprooms[room].time > expireLimit) {
+      rooms.push(temprooms[room]);
+    }
+  }
+
+  // If the room has been touched in the past day, update the time.
+  for (var room in rooms) {
+    if (rooms[room].name == roomname) {
+      rooms[room].time = new Date().getTime();
+      return;
+    }
+  }
+
+  // If this room hasn't been used in a day, add it.
+  var newRoom = {
+    name: roomname,
+    time: new Date().getTime()
+  };
+
+  rooms.push(newRoom);
 }
 
 // Set socket.io's log level. Change to 3 to see debug info.

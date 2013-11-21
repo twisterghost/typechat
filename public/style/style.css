@@ -58,6 +58,12 @@ input {
   margin: 0 auto;
 }
 
+#rooms {
+  width: 80%;
+  font-size: 2em;
+  margin: 0 auto;
+}
+
 .comment {
   color: #888;
   padding-left: 4em;
