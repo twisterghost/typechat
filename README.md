@@ -4,5 +4,5 @@ Effortless link sharing
 ## Installation
 ```
 $ npm install
-$ node hattip [--topic TOPIC --port PORT]
+$ node typechat [--topic TOPIC --port PORT]
 ```
