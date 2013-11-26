@@ -105,3 +105,7 @@ input {
   padding-left: 0;
   border-left: 1px solid #aaa;
 }
+
+.vote {
+  cursor: pointer;
+}

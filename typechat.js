@@ -1,5 +1,5 @@
 /*
- * HatTip - Simple and elegant link sharing.
+ * typechat - Simple and elegant link sharing.
  */
 
 console.log("Starting up. Gimmie a sec...");
@@ -17,10 +17,12 @@ var _ = require("underscore");
 
 // Set up and defaults.
 var port = argv.port || process.env.PORT || 4488;
-var topic = argv.topic || "Hat Tip";
+var topic = argv.topic || "typechat";
 var postMemory = [];
 var urlPattern = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/;
 var rooms = [];
+var uid = 0;
+
 
 logger.info("Runnin' on port " + port);
 
@@ -79,18 +81,25 @@ io.sockets.on('connection', function (socket) {
   socket.on("send", function(data) {
     console.log("Message sent by " + data.username);
     parseMessage(data, socket);
+  });
+
+  socket.on("vote", function(data) {
+    upvotePost(data.id);
   })
 });
 
 // Parses messages and responds to the client.
 function parseMessage(data, socket) {
+  var uid = new Date().getTime() + "-" + Math.floor(Math.random() * 1000);
 
   var post = {
     type: "",
     content: "",
     author: data.username,
     time: new Date().getTime() / 1000,
-    room: data.room
+    room: data.room,
+    score: 0,
+    id: uid
   }
 
   if (data.message.trim()[0] == "!") {
@@ -163,6 +172,15 @@ function parseMessage(data, socket) {
   saveData();
 }
 
+function upvotePost(id) {
+  for (var thisPost in postMemory) {
+    var post = postMemory[thisPost];
+    if (post.id == id) {
+      post.score++;
+      return;
+    }
+  }
+}
 
 function saveData() {
   fs.writeFileSync("memory", JSON.stringify(postMemory));
@@ -217,11 +235,30 @@ function updateRooms(roomname) {
   rooms.push(newRoom);
 }
 
+function formatPosts() {
+  console.log("Updating post format...");
+  var count = 0;
+  for (var post in postMemory) {
+    if (postMemory[post].id == undefined) {
+      count++;
+      var thisuid = uid++;
+      postMemory[post].id = new Date().getTime() + "-" + Math.floor(Math.random() * 1000) + "-" + thisuid;
+      postMemory[post].score = 0;
+    }
+  }
+  console.log("Finished updating " + count + " posts.");
+}
+
 // Set socket.io's log level. Change to 3 to see debug info.
 io.set("log level", 2);
 
 // Load up the server memory, if any.
 loadData();
+
+// Conditionally run an update.
+if (argv.update) {
+  formatPosts();
+}
 
 // Start listening.
 server.listen(port);

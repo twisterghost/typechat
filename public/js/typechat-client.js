@@ -1,26 +1,49 @@
+(function typechat() {
+
+// Variables containing the global state of the user.
 var state = {
   status: "start",
   room: "home",
   topic: $("title").html()
 }
 
+// Unique ID variable for whatever use.
+var uid = 0;
+
+// URL matching pattern.
 var urlPattern = /(http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/;
 
+// Connect to the server.
 var socket = io.connect("http://" + location.host);
 
+// Run when we connect.
 socket.on("connect-ack", function(data) {
-  joinHatTip();
+  joinServer();
   socket.emit("getMemory", {room: state.room});
 });
 
+// Add all the content when we get a postMemory event.
 socket.on("postMemory", function(data) {
   for (var i = 0; i < data.posts.length; i++) {
     addContent(data.posts[i]);
   }
+
+  $(".vote").each(function() {
+    var postId = this.id;
+    $(this).click(function() {
+      upvote(postId);
+      $(this).off("click");
+    });
+  });
+
 });
 
 socket.on("new", function(data) {
   addContent(data);
+  $("#" + data.id).click(function() {
+    upvote(data.id);
+    $(this).off("click");
+  });
 });
 
 socket.on("namechange", function(data) {
@@ -57,13 +80,15 @@ function addContent(data) {
   }
   var add = "";
 
+  var upvoteHTML = "<span class='vote' id='" + data.id + "'>+" + data.score + "</span>";
+
   // Create the timestamp.
   var dateObj = data.time * 1000;
   var timestamp = moment(dateObj).format("M/D/YY, h:mm:ss a");
 
   if (data.type == "comment") {
     add = $("<div class='addition'><div class='comment'>" + data.content + "</div>" +
-      "<div class='author'>" + data.author + " - " + timestamp + "</div></div>");
+      "<div class='author'>" + data.author + " - " + timestamp + " - " + upvoteHTML + "</div></div>");
 
     if (data.lookback) {
       if ($(".toplevel").size() > parseInt(data.lookback)) {
@@ -77,18 +102,18 @@ function addContent(data) {
 
   } else if (data.type == "namechange") {
     add = $("<div class='addition'><div class='nameChange'>" + data.content + "</div>" +
-      "<div class='author'>" + data.author + " - " + timestamp + "</div></div>");
+      "<div class='author'>" + data.author + " - " + timestamp + " - " + upvoteHTML + "</div></div>");
     $(".toplevel").first().append(add);
 
   } else if (data.type == "link") {
     add = $("<div class='addition toplevel'><div class='link'>" +
      "<a target='_blank' href='" + data.content + "'>" + data.content + "</a></div>" +
-      "<div class='author'>" + data.author + " - " + timestamp + "</div></div>");
+      "<div class='author'>" + data.author + " - " + timestamp + " - " + upvoteHTML + "</div></div>");
     $("#content").prepend(add);
   } else if (data.type == "text") {
     add = $("<div class='addition toplevel'><div class='link'>" +
      data.content + "</div>" +
-      "<div class='author'>" + data.author + " - " + timestamp + "</div></div>");
+      "<div class='author'>" + data.author + " - " + timestamp + " - " + upvoteHTML + "</div></div>");
     $("#content").prepend(add);
   }
 
@@ -100,9 +125,9 @@ socket.on("unknown", function() {
 
 $(document).ready(function() {
 
-  $("html").click(function() {
-    $("#mainInput").focus();
-  });
+  //$("html").click(function() {
+  //  $("#mainInput").focus();
+  //});
 
   // Animation for action div
   $("#mainInput").keyup(function(e) {
@@ -113,7 +138,7 @@ $(document).ready(function() {
 
     if ($(this).val().trim() != "") {
       if (state.status == "start" || state.status == "connecting") {
-        setEnterAction("Join This HatTip");
+        setEnterAction("Join this typechat");
       } else {
 
         if (input.val().trim()[0] == "!") {
@@ -205,6 +230,15 @@ function enter() {
 
 }
 
+function upvote(id) {
+  socket.emit("vote", {
+    id: id
+  });
+  oldScore = parseInt($("#" + id).html());
+  newScore = ++oldScore;
+  $("#" + id).html("+" + newScore);
+}
+
 function changeRoom(room) {
   socket.emit("send", {
     username: state.username,
@@ -224,7 +258,7 @@ function connect(input) {
   });
 }
 
-function joinHatTip() {
+function joinServer() {
   state.status = "connected";
   $("#enterAction").html("Welcome, " + state.username);
   setTimeout(showHelp, 1000);
@@ -245,3 +279,5 @@ function showHelp() {
     opacity: .5
   }, 500);
 }
+
+}());
