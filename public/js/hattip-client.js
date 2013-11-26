@@ -57,9 +57,13 @@ function addContent(data) {
   }
   var add = "";
 
+  // Create the timestamp.
+  var dateObj = data.time * 1000;
+  var timestamp = moment(dateObj).format("M/D/YY, h:mm:ss a");
+
   if (data.type == "comment") {
     add = $("<div class='addition'><div class='comment'>" + data.content + "</div>" +
-      "<div class='author'>" + data.author + "</div></div>");
+      "<div class='author'>" + data.author + " - " + timestamp + "</div></div>");
 
     if (data.lookback) {
       if ($(".toplevel").size() > parseInt(data.lookback)) {
@@ -73,18 +77,18 @@ function addContent(data) {
 
   } else if (data.type == "namechange") {
     add = $("<div class='addition'><div class='nameChange'>" + data.content + "</div>" +
-      "<div class='author'>" + data.author + "</div></div>");
+      "<div class='author'>" + data.author + " - " + timestamp + "</div></div>");
     $(".toplevel").first().append(add);
 
   } else if (data.type == "link") {
     add = $("<div class='addition toplevel'><div class='link'>" +
      "<a target='_blank' href='" + data.content + "'>" + data.content + "</a></div>" +
-      "<div class='author'>" + data.author + "</div></div>");
+      "<div class='author'>" + data.author + " - " + timestamp + "</div></div>");
     $("#content").prepend(add);
   } else if (data.type == "text") {
     add = $("<div class='addition toplevel'><div class='link'>" +
      data.content + "</div>" +
-      "<div class='author'>" + data.author + "</div></div>");
+      "<div class='author'>" + data.author + " - " + timestamp + "</div></div>");
     $("#content").prepend(add);
   }
 
