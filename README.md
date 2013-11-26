@@ -1,5 +1,4 @@
-
-# Hat Tip
+# typechat
 Effortless link sharing
 
 ## Installation
