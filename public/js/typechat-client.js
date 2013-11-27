@@ -103,7 +103,7 @@ function addContent(data) {
     var isLink = decodedData.match(urlPattern);
 
     var html = "<div class='addition'><div class='comment'>" + 
-      (isLink !== null ? "<div class='link'><a target='_blank' href='" + data.content + "'>" + data.content + "</a></div></div>" : data.content + "</div>");
+      (isLink !== null ? "<div class='link'><a target='_blank' href='" + isLink[0] + "'>" + data.content + "</a></div></div>" : data.content + "</div>");
 
     
     html = html + "<div class='author'>" + data.author + " - " + timestamp + " - " + upvoteHTML + "</div></div>";
