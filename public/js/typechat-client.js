@@ -30,8 +30,15 @@ socket.on("postMemory", function(data) {
 
   $(".vote").each(function() {
     var postId = this.id;
-    $(this).click(function() {
-      upvote(postId);
+    $(this).click(function(event) {
+      console.log(event);
+      if (event.button === 0) {
+        if (event.shiftKey) {
+          downvote(postId);
+        } else {
+          upvote(postId);
+        }
+      }
       $(this).off("click");
     });
   });
@@ -237,6 +244,19 @@ function upvote(id) {
   oldScore = parseInt($("#" + id).html());
   newScore = ++oldScore;
   $("#" + id).html("+" + newScore);
+}
+
+function downvote(id) {
+  socket.emit("downvote", {
+    id: id
+  });
+  oldScore = parseInt($("#" + id).html());
+  newScore = --oldScore;
+  if (newScore > 0) {
+    $("#" + id).html("+" + newScore);
+  } else {
+    $("#" + id).html('' + newScore);
+  }
 }
 
 function changeRoom(room) {

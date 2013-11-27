@@ -85,7 +85,11 @@ io.sockets.on('connection', function (socket) {
 
   socket.on("vote", function(data) {
     upvotePost(data.id);
-  })
+  });
+
+  socket.on("downvote", function(data) {
+    downvotePost(data.id);
+  });
 });
 
 // Parses messages and responds to the client.
@@ -177,6 +181,16 @@ function upvotePost(id) {
     var post = postMemory[thisPost];
     if (post.id == id) {
       post.score++;
+      return;
+    }
+  }
+}
+
+function downvotePost(id) {
+  for (var thisPost in postMemory) {
+    var post = postMemory[thisPost];
+    if (post.id == id) {
+      post.score--;
       return;
     }
   }
