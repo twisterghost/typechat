@@ -31,7 +31,6 @@ socket.on("postMemory", function(data) {
   $(".vote").each(function() {
     var postId = this.id;
     $(this).click(function(event) {
-      console.log(event);
       if (event.button === 0) {
         if (event.shiftKey) {
           downvote(postId);
