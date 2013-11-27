@@ -1,5 +1,3 @@
-(function typechat() {
-
 // Variables containing the global state of the user.
 var state = {
   status: "start",
@@ -279,5 +277,3 @@ function showHelp() {
     opacity: .5
   }, 500);
 }
-
-}());
