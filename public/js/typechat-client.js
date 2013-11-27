@@ -47,7 +47,13 @@ socket.on("postMemory", function(data) {
 socket.on("new", function(data) {
   addContent(data);
   $("#" + data.id).click(function() {
-    upvote(data.id);
+    if (event.button === 0) {
+      if (event.shiftKey) {
+        downvote(postId);
+      } else {
+        upvote(postId);
+      }
+    }
     $(this).off("click");
   });
 });
@@ -93,8 +99,16 @@ function addContent(data) {
   var timestamp = moment(dateObj).format("M/D/YY, h:mm:ss a");
 
   if (data.type == "comment") {
-    add = $("<div class='addition'><div class='comment'>" + data.content + "</div>" +
-      "<div class='author'>" + data.author + " - " + timestamp + " - " + upvoteHTML + "</div></div>");
+    var decodedData = $("<div />").html(data.content).text();
+    var isLink = decodedData.match(urlPattern);
+
+    var html = "<div class='addition'><div class='comment'>" + 
+      (isLink !== null ? "<div class='link'><a target='_blank' href='" + data.content + "'>" + data.content + "</a></div></div>" : data.content + "</div>");
+
+    
+    html = html + "<div class='author'>" + data.author + " - " + timestamp + " - " + upvoteHTML + "</div></div>";
+
+    add = $(html);
 
     if (data.lookback) {
       if ($(".toplevel").size() > parseInt(data.lookback)) {
