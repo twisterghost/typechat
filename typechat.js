@@ -159,7 +159,6 @@ function parseMessage(data, socket) {
   } else if (data.message.trim() == "rooms") {
 
     // Return the list of rooms.
-    console.log("sending rooms");
     socket.emit("roomlist", {rooms: rooms});
 
   } else {
